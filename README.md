@@ -37,7 +37,7 @@ For easy use of NSCaching, please find tools discussed in our AutoML survey pape
 
     @techreport{yao2018automl,
       title={Taking Human out of Learning Applications: A Survey on Automated Machine Learning},
-      author={Yao, Quanming and Wang Mengshuo},
+      author={Yao, Quanming and Wang, Mengshuo},
       institution={arXiv preprint arXiv:1810.13306},
       year={2018}
     }
