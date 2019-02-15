@@ -1,2 +1,33 @@
 # NSCaching
-Code for NSCaching
+The Code for ArXiv preprint ["NSCaching: Simple and Efficient Negative Sampling for Knowledge Graph Embedding"](https://arxiv.org/abs/1812.06410) and this paper has been accepted by ICDE2019.
+
+Readers are welcomed to fork this repository to reproduce the experiments and follow our work. Please kindly cite our paper
+
+    @techreport{zhang2018nscaching,
+      title={NSCaching: Simple and Efficient Negative Sampling for Knowledge Graph Embedding},
+      author={Zhang, Yongqi and Yao, Quanming and Shao, Yingxia and Chen, Lei},
+      institution={arXiv preprint arXiv:1812.06410},
+      year={2018}
+    }
+
+## Instructions
+For the sake of ease, a quick instruction is given for readers to reproduce the whole process on fb15k dataset.
+Note that the programs are tested on Linux(Ubuntu release 16.04), Python 3.7 from Anaconda 4.5.11.
+
+Install PyTorch (>0.4.0)
+    
+    conda install pytorch -c pytorch
+    
+Get this repo
+
+    git clone https://github.com/yzhangee/NSCaching
+    cd NSCaching
+Get dataset from THUNLP-OpenKE
+  
+    git clone https://github.com/thunlp/OpenKE
+    mv OpenKE/benchmarks ../KG_Data
+
+### NSCaching+scratch on FB15K
+
+    python train.py
+
