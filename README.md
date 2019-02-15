@@ -30,4 +30,15 @@ Get dataset from THUNLP-OpenKE
 ### NSCaching+scratch on FB15K
 
     python train.py
+    
+# Future Works
+
+For easy use of NSCaching, please find tools discussed in our AutoML survey paper:
+
+    @techreport{yao2018automl,
+      title={Taking Human out of Learning Applications: A Survey on Automated Machine Learning},
+      author={Yao, Quanming and Wang Mengshuo},
+      institution={arXiv preprint arXiv:1810.13306},
+      year={2018}
+    }
 
