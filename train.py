@@ -42,59 +42,59 @@ parser.add_argument('--log_prefix', type=str, default='', help='log prefix')
 
 args = parser.parse_args()
 
-dataset = args.task_dir.split('/')[-1]
-directory = os.path.join('results', args.model)
-if not os.path.exists(directory):
-    os.makedirs(directory)
+if __name__ == '__main__':
+    os.environ["OMP_NUM_THREADS"] = "5"
+    os.environ["MKL_NUM_THREADS"] = "5"
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    torch.set_num_threads(5)
+
+    dataset = args.task_dir.split('/')[-1]
+    directory = os.path.join('results', args.model)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
    
-args.out_dir = directory
-args.perf_file = os.path.join(directory, '_'.join([dataset, args.sample, args.update]) + args.out_file_info + '.txt')
-args.stat_file = os.path.join(directory, '_'.join([dataset, args.sample, args.update]) + '.stat')
-print('output file name:', args.perf_file, args.stat_file)
+    args.out_dir = directory
+    args.perf_file = os.path.join(directory, '_'.join([dataset, args.sample, args.update]) + args.out_file_info + '.txt')
+    args.stat_file = os.path.join(directory, '_'.join([dataset, args.sample, args.update]) + '.stat')
+    print('output file name:', args.perf_file, args.stat_file)
 
-# TODO: select which gpu to use
-logger_init(args)
-os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
-os.environ["OMP_NUM_THREADS"] = "5"
-os.environ["MKL_NUM_THREADS"] = "5"
+    logger_init(args)
 
-task_dir = args.task_dir
-loader = DataLoader(task_dir, args.N_1)
+    task_dir = args.task_dir
+    loader = DataLoader(task_dir, args.N_1)
 
-n_ent, n_rel = loader.graph_size()
+    n_ent, n_rel = loader.graph_size()
 
-train_data = loader.load_data('train')
-valid_data = loader.load_data('valid')
-test_data  = loader.load_data('test')
-args.n_train = len(train_data[0])
-print("Number of train:{}, valid:{}, test:{}.".format(len(train_data[0]), len(valid_data[0]), len(test_data[0])))
+    train_data = loader.load_data('train')
+    valid_data = loader.load_data('valid')
+    test_data  = loader.load_data('test')
+    args.n_train = len(train_data[0])
+    print("Number of train:{}, valid:{}, test:{}.".format(len(train_data[0]), len(valid_data[0]), len(test_data[0])))
 
-plot_config(args)
+    plot_config(args)
 
-heads, tails = loader.heads_tails()
-head_idx, tail_idx, head_cache, tail_cache, head_pos, tail_pos = loader.get_cache_list()
-caches = [head_idx, tail_idx, head_cache, tail_cache, head_pos, tail_pos]
+    heads, tails = loader.heads_tails()
+    head_idx, tail_idx, head_cache, tail_cache, head_pos, tail_pos = loader.get_cache_list()
+    caches = [head_idx, tail_idx, head_cache, tail_cache, head_pos, tail_pos]
 
-train_data = [torch.LongTensor(vec) for vec in train_data]
-valid_data = [torch.LongTensor(vec) for vec in valid_data]
-test_data  = [torch.LongTensor(vec) for vec in test_data]
+    train_data = [torch.LongTensor(vec) for vec in train_data]
+    valid_data = [torch.LongTensor(vec) for vec in valid_data]
+    test_data  = [torch.LongTensor(vec) for vec in test_data]
 
-tester_val = lambda: model.test_link(valid_data, n_ent, heads, tails, args.filter)
-tester_tst = lambda: model.test_link(test_data, n_ent, heads, tails, args.filter)
+    tester_val = lambda: model.test_link(valid_data, n_ent, heads, tails, args.filter)
+    tester_tst = lambda: model.test_link(test_data, n_ent, heads, tails, args.filter)
 
-corrupter = BernCorrupter(train_data, n_ent, n_rel)
-model = BaseModel(n_ent, n_rel, args)
+    corrupter = BernCorrupter(train_data, n_ent, n_rel)
+    model = BaseModel(n_ent, n_rel, args)
 
-if args.load:
-    model.load(os.path.join(args.task_dir, args.model + '.mdl'))
-    tester_val()
-    tester_tst()
+    if args.load:
+        model.load(os.path.join(args.task_dir, args.model + '.mdl'))
+        tester_val()
+        tester_tst()
 
-best_str = model.train(train_data, caches, corrupter, tester_val, tester_tst)
-with open(args.perf_file, 'a') as f:
-    print('Training finished and best performance:', best_str)
-    f.write('best_performance: '+best_str)
-
-
+    best_str = model.train(train_data, caches, corrupter, tester_val, tester_tst)
+    with open(args.perf_file, 'a') as f:
+        print('Training finished and best performance:', best_str)
+        f.write('best_performance: '+best_str)
 
 
