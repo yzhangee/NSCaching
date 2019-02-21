@@ -55,6 +55,8 @@ print('output file name:', args.perf_file, args.stat_file)
 # TODO: select which gpu to use
 logger_init(args)
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+os.environ["OMP_NUM_THREADS"] = "5"
+os.environ["MKL_NUM_THREADS"] = "5"
 
 task_dir = args.task_dir
 loader = DataLoader(task_dir, args.N_1)
