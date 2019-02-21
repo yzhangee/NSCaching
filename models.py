@@ -185,7 +185,6 @@ class DistMultModule(BaseModule):
 class ComplExModule(BaseModule):
     def __init__(self, n_ent, n_rel, args):
         super(ComplExModule, self).__init__(n_ent, n_rel, args)
-        self.dropout = nn.Dropout(self.lamb)
 
         self.ent_re_embed = nn.Embedding(n_ent, args.hidden_dim)
         self.ent_im_embed = nn.Embedding(n_ent, args.hidden_dim)
@@ -211,6 +210,43 @@ class ComplExModule(BaseModule):
                 + torch.sum(rela_re_embed * head_im_embed * tail_im_embed, dim=-1) \
                 + torch.sum(rela_im_embed * head_re_embed * tail_im_embed, dim=-1) \
                 - torch.sum(rela_im_embed * head_im_embed * tail_re_embed, dim=-1)
+        return score.view(shapes)
+
+    def dist(self, head, tail, rela):
+        return -self.forward(head, tail, rela)
+
+    def score(self, head, tail, rela):
+        return -self.forward(head, tail, rela)
+
+    def prob_logit(self, head, tail, rela):
+        return self.forward(head, tail, rela)/self.temp
+
+class SimplEModule(BaseModule):
+    def __init__(self, n_ent, n_rel, args):
+        super(SimplEModule, self).__init__(n_ent, n_rel, args)
+
+        self.head_embed = nn.Embedding(n_ent, args.hidden_dim)
+        self.tail_embed = nn.Embedding(n_ent, args.hidden_dim)
+
+        self.rela_embed = nn.Embedding(n_rel, args.hidden_dim)
+        self.rela_inv_embed = nn.Embedding(n_rel, args.hidden_dim)
+        self.init_weight()
+
+    def forward(self, head, tail, rela):
+        shapes = head.size()
+        head = head.contiguous().view(-1)
+        tail = tail.contiguous().view(-1)
+        rela = rela.contiguous().view(-1)
+
+        head_embed = self.head_embed(head)
+        tail_embed = self.tail_embed(tail)
+        rela_embed = self.rela_embed(rela)
+        head_inv_embed = self.tail_embed(head)
+        tail_inv_embed = self.head_embed(tail)
+        rela_inv_embed = self.rela_inv_embed(rela)
+
+        score = torch.sum(head_embed * rela_embed * tail_embed, dim=-1) \
+                + torch.sum(head_inv_embed * rela_inv_embed * tail_inv_embed, dim=-1)
         return score.view(shapes)
 
     def dist(self, head, tail, rela):
