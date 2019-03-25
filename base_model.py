@@ -128,7 +128,7 @@ class BaseModel(object):
         elif sample == 'IS':        # NSCaching + IS
             n = head.size(0)
             h_cand = torch.from_numpy(self.head_cache[head_idx]).type(torch.LongTensor).cuda()
-            t_cand = torch.from_numpy(self.head_cache[tail_idx]).type(torch.LongTensor).cuda()
+            t_cand = torch.from_numpy(self.tail_cache[tail_idx]).type(torch.LongTensor).cuda()
 
             head = head.unsqueeze(1).expand_as(h_cand)
             tail = tail.unsqueeze(1).expand_as(h_cand)
@@ -146,7 +146,7 @@ class BaseModel(object):
         elif sample == 'top':       # NSCaching + top
             n = head.size(0)
             h_cand = torch.from_numpy(self.head_cache[head_idx]).type(torch.LongTensor).cuda()
-            t_cand = torch.from_numpy(self.head_cache[tail_idx]).type(torch.LongTensor).cuda()
+            t_cand = torch.from_numpy(self.tail_cache[tail_idx]).type(torch.LongTensor).cuda()
 
             head = head.unsqueeze(1).expand_as(h_cand)
             tail = tail.unsqueeze(1).expand_as(h_cand)
