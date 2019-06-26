@@ -152,8 +152,8 @@ class BaseModel(object):
             tail = tail.unsqueeze(1).expand_as(h_cand)
             rela = rela.unsqueeze(1).expand_as(h_cand)
 
-            h_scores = self.model.score(h_cand, tail, rela)
-            t_scores = self.model.score(head, t_cand, rela)
+            h_scores = self.model.prob(h_cand, tail, rela)
+            t_scores = self.model.prob(head, t_cand, rela)
             h_new = torch.argmax(h_scores,  dim=-1)     # sample the top-1
             t_new = torch.argmax(t_scores,  dim=-1)
             row_idx = torch.arange(0, n).type(torch.LongTensor)
