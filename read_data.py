@@ -97,14 +97,14 @@ class DataLoader:
         count_h = 0
         count_t = 0
         for h, t, r in zip(self.train_head, self.train_tail, self.train_rela):
-            if not head_cache.__contains__((t,r)):
+            if not (t,r) in head_cache:
                 head_cache[(t,r)] = count_h
                 head_pos.append([h])
                 count_h += 1
             else:
                 head_pos[head_cache[(t,r)]].append(h)
 
-            if not tail_cache.__contains__((h,r)):
+            if not (h,r) in tail_cache:
                 tail_cache[(h,r)] = count_t
                 tail_pos.append([t])
                 count_t += 1
