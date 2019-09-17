@@ -77,24 +77,31 @@ class BaseModel(object):
 
     def update_cache(self, head, tail, rela, head_idx, tail_idx):
         ''' update the cache with different schemes '''
-        batch_size = len(head_idx)
+        head_idx, head_uniq = np.unique(head_idx, return_index=True)
+        tail_idx, tail_uniq = np.unique(tail_idx, return_index=True)
+
+        tail_h = tail[head_uniq]
+        rela_h = rela[head_uniq]
+
+        rela_t = rela[tail_uniq]
+        head_t = head[tail_uniq]
 
         # get candidate for updating the cache
         h_cache = self.head_cache[head_idx]
         t_cache = self.tail_cache[tail_idx]
-        randint = np.random.choice(self.n_ent, (batch_size, self.args.N_2))
-        h_cand = np.concatenate([h_cache, randint], 1)
-        t_cand = np.concatenate([t_cache, randint], 1)
+        h_cand = np.concatenate([h_cache, np.random.choice(self.n_ent, (len(head_idx), self.args.N_2))], 1)
+        t_cand = np.concatenate([t_cache, np.random.choice(self.n_ent, (len(tail_idx), self.args.N_2))], 1)
         h_cand = torch.from_numpy(h_cand).type(torch.LongTensor).cuda()
         t_cand = torch.from_numpy(t_cand).type(torch.LongTensor).cuda()
 
         # expand for computing scores/probs
-        head = head.unsqueeze(1).expand(-1, self.args.N_1 + self.args.N_2)
-        tail = tail.unsqueeze(1).expand(-1, self.args.N_1 + self.args.N_2)
-        rela = rela.unsqueeze(1).expand(-1, self.args.N_1 + self.args.N_2)
+        rela_h = rela_h.unsqueeze(1).expand(-1, self.args.N_1 + self.args.N_2)
+        tail_h = tail_h.unsqueeze(1).expand(-1, self.args.N_1 + self.args.N_2)
+        head_t = head_t.unsqueeze(1).expand(-1, self.args.N_1 + self.args.N_2)
+        rela_t = rela_t.unsqueeze(1).expand(-1, self.args.N_1 + self.args.N_2)
 
-        h_probs = self.model.prob(h_cand, tail, rela)
-        t_probs = self.model.prob(head, t_cand, rela)
+        h_probs = self.model.prob(h_cand, tail_h, rela_h)
+        t_probs = self.model.prob(head_t, t_cand, rela_t)
 
         if self.args.update == 'IS':
             h_new = torch.multinomial(h_probs, self.args.N_1, replacement=False)
@@ -103,9 +110,10 @@ class BaseModel(object):
             _, h_new = torch.topk(h_probs,  k=self.args.N_1, dim=-1)
             _, t_new = torch.topk(t_probs,  k=self.args.N_1, dim=-1)
 
-        row_idx = torch.arange(0, batch_size).type(torch.LongTensor).unsqueeze(1).expand(-1, self.args.N_1)
-        h_rep = h_cand[row_idx, h_new]
-        t_rep = t_cand[row_idx, t_new]
+        h_idx = torch.arange(0, len(head_idx)).type(torch.LongTensor).unsqueeze(1).expand(-1, self.args.N_1)
+        t_idx = torch.arange(0, len(tail_idx)).type(torch.LongTensor).unsqueeze(1).expand(-1, self.args.N_1)
+        h_rep = h_cand[h_idx, h_new]
+        t_rep = t_cand[t_idx, t_new]
 
         self.head_cache[head_idx] = h_rep.cpu().numpy()
         self.tail_cache[tail_idx] = t_rep.cpu().numpy()
@@ -237,6 +245,8 @@ class BaseModel(object):
             self.time_tot += time.time() - start
             print("Epoch: %d/%d, Loss=%.8f, Time=%.4f"%(epoch+1, n_epoch, epoch_loss/n_train, time.time()-start))
            
+            if self.args.remove:
+                self.remove_positive(self.args.remove)
                
             if (epoch+1) % self.args.epoch_per_test == 0:
                 # output performance 
@@ -249,8 +259,6 @@ class BaseModel(object):
                     f.write(out_str)
 
                 # remove false negative 
-                if self.args.remove:
-                    self.remove_positive(self.args.remove)
 
                 # output the best performance info
                 if valid_mrr > best_mrr:

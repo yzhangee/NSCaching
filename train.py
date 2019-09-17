@@ -87,10 +87,6 @@ if __name__ == '__main__':
     corrupter = BernCorrupter(train_data, n_ent, n_rel)
     model = BaseModel(n_ent, n_rel, args)
 
-    if args.load:
-        model.load(os.path.join(args.task_dir, args.model + '.mdl'))
-        tester_val()
-        tester_tst()
 
     best_str = model.train(train_data, caches, corrupter, tester_val, tester_tst)
     with open(args.perf_file, 'a') as f:
