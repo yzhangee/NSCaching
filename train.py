@@ -1,6 +1,7 @@
 import os 
 import argparse
 import torch
+import warning
 from corrupter import BernCorrupter
 from read_data import DataLoader
 from utils import logger_init, plot_config
@@ -47,6 +48,7 @@ if __name__ == '__main__':
     os.environ["MKL_NUM_THREADS"] = "5"
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
     torch.set_num_threads(5)
+    warnings.filterwarnings("ignore", category=UserWarning)
 
     dataset = args.task_dir.split('/')[-1]
     directory = os.path.join('results', args.model)
