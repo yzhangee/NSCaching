@@ -1,7 +1,7 @@
 import os 
 import argparse
 import torch
-import warning
+import warnings
 from corrupter import BernCorrupter
 from read_data import DataLoader
 from utils import logger_init, plot_config
